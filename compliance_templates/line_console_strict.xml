@@ -4,21 +4,23 @@
         <ned-id>
             <id xmlns:cisco-ios-cli-6.108="http://tail-f.com/ns/ned-id/cisco-ios-cli-6.108">
                 cisco-ios-cli-6.108:cisco-ios-cli-6.108</id>
-        <config>
-            <line xmlns="urn:ios">
-            <console tags=" strict ">
-                <first>0</first>
-                <exec-timeout>
-                <minutes>0</minutes>
-                </exec-timeout>
-                <local-authentication>
-                <login>
-                    <authentication>{$AUTH_NAME}</authentication>
-                </login>
-                </local-authentication>
-            </console>
-            </line>
-        </config>
+            <config>
+
+                <line xmlns="urn:ios">
+                    <console tags=" strict ">
+                        <first>0</first>
+                        <exec-timeout>
+                            <minutes>0</minutes>
+                        </exec-timeout>
+                        <local-authentication>
+                            <login>
+                                <authentication>{$AUTH_NAME}</authentication>
+                            </login>
+                        </local-authentication>
+                    </console>
+                </line>
+
+            </config>
         </ned-id>
     </template>
 </compliance>

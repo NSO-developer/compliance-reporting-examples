@@ -176,14 +176,9 @@ class ServiceCallbacks(Service):
 
         #Log rules dict
         self.log.info(rules_dict)
-        
+
         #Create compliance report parameters
         create_compliance_report_parameters(report, rules_dict)
-            
-        #vars = ncs.template.Variables()
-        #vars.add('DUMMY', '127.0.0.1')
-        #template = ncs.template.Template(service)
-        #template.apply('compliance-service-template', vars)
 
     # The pre_modification() and post_modification() callbacks are optional,
     # and are invoked outside FASTMAP. pre_modification() is invoked before

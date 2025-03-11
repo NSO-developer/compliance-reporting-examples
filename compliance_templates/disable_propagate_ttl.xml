@@ -20,7 +20,7 @@
             <id xmlns:cisco-ios-cli-6.108="http://tail-f.com/ns/ned-id/cisco-ios-cli-6.108">
                 cisco-ios-cli-6.108:cisco-ios-cli-6.108</id>
             <config>
-
+            
                 <mpls xmlns="urn:ios">
                     <mpls-ip-conf>
                         <ip>

@@ -7,10 +7,10 @@
                 cisco-ios-cli-6.108:cisco-ios-cli-6.108</id>
             <config>
 
-                   <service xmlns="urn:ios">
-                     <udp-small-servers tags=" absent "/>
-                     <tcp-small-servers tags=" absent "/>
-                   </service>
+                <service xmlns="urn:ios">
+                    <udp-small-servers tags=" absent " />
+                    <tcp-small-servers tags=" absent " />
+                </service>
 
             </config>
         </ned-id>

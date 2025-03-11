@@ -7,7 +7,7 @@
             <config>
 
                 <service xmlns="urn:ios">
-                    <password-encryption/>
+                    <password-encryption />
                 </service>
 
             </config>
