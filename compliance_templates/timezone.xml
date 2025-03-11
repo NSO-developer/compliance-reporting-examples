@@ -1,0 +1,39 @@
+<compliance xmlns="http://tail-f.com/ns/ncs">
+    <template>
+        <name>timezone</name>
+
+        <ned-id>
+            <id xmlns:cisco-iosxr-cli-7.61="http://tail-f.com/ns/ned-id/cisco-iosxr-cli-7.61">
+                cisco-iosxr-cli-7.61:cisco-iosxr-cli-7.61</id>       
+            <config>
+
+                <clock xmlns="http://tail-f.com/ned/cisco-ios-xr">
+                    <timezone>
+                    <zone>{$TIMEZONE}</zone>
+                    <hours-offset>{$OFFSET_HOURS}</hours-offset>
+                    <minutes-offset>{$OFFSET_MINUTES}</minutes-offset>
+                    </timezone>
+                </clock>
+
+            </config>
+        </ned-id>
+
+        <ned-id>
+            <id xmlns:cisco-ios-cli-6.108="http://tail-f.com/ns/ned-id/cisco-ios-cli-6.108">
+                cisco-ios-cli-6.108:cisco-ios-cli-6.108</id>     
+            <config>
+
+
+                <clock xmlns="urn:ios">
+                    <timezone>
+                    <zone>{$TIMEZONE}</zone>
+                    <hours>{$OFFSET_HOURS}</hours>
+                    <minutes>{$OFFSET_MINUTES}</minutes>
+                    </timezone>
+                </clock>
+
+            </config>
+        </ned-id>
+
+    </template>
+</compliance>

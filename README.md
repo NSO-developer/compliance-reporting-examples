@@ -1,93 +1,266 @@
 # compliance-reporting-examples
+[Contribution guidelines for this project](docs/CONTRIBUTING.md)
 
+## Introduction
 
+This repo explores how to leverage Cisco Network Services Orchestrator (NSO) compliance reporting to audit network configurations using compliance templates first introduced in NSO 6.1 and demonstrates the ongoing enhancements to compliance reporting. The repo explores several flavors of compliance check patterns, the process of creating an NSO compliance template, and an example framework for a continuous compliance reporting service that allows policy rules to be translated into built-in compliance reports.  
 
-## Getting started
+## Overview of Compliance Check Patterns
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Several patterns emerge when creating compliance checks. In general, a compliance check can be described by 3 characteristics: the match type, the match pattern, and the match logic. Understanding which categories a compliance check falls into will help guide in selecting the appropriate template pattern to use.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+To begin classifying a compliance check, you must first create the intended network configuration for the PASS condition and/or the FAIL condition (as appropriate). This configuration is then assessed for each of the categories below. 
 
-## Add your files
+### Match Type
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+The match type category determines any required conditions for a given configuration to be matched. This has template implications as variables must be referenced and regular expression conditions must be well understood. 
+
+1. exact match
+
+    ```
+    service password-encryption
+    ```
+
+2. variable substitution
+
+    ```
+    clock timezone EST -5
+    ```
+
+3.  regular expression match 
+
+    
+    ```
+    login block-for 900 attempts 3 within 120
+    ```
+
+### Match Logic
+
+The match logic category determines how a given configuration is evaluated. This has template implications as features may need to be present, absent, present but disabled, absent but enabled, or evaluated (ie count).
+
+1. enabled feature
+
+    ```
+    service password-encryption
+    ```
+
+2. disabled feature
+
+    ```
+    no mpls ip propagate-ttl
+    ```
+    
+3. absent configuration
+
+    ```
+    service ipv4 tcp-small-servers
+    ```
+    
+4. comparison operations (ex. 2 or more ntp servers)
+
+    ```
+    ntp server 1.1.1.1
+    ntp server 2.2.2.2
+    ```
+
+### Match Pattern
+
+The match pattern category determines the scope of a given configuration match. This has template implications as configuration elements may be nested, may require matching multiple lines, or may require iterating through a list of values.
+
+1. global configuration
+
+    ```
+    service password-encryption
+    ```
+    
+2. nested configuration
+
+    ```
+    interface GigabitEthernet0/1
+      no ip unreachables
+    ```
+    
+3. configuration list
+
+    ```
+    ip access-control list XXX
+      deny
+      deny
+      deny
+      deny ip any any option any-options
+      permit
+
+    ```
+    
+4. configuration section (multiple lines)
+
+    ```
+    archive
+      log config
+        logging enable
+    ```
+
+## Creating Compliance Templates
+
+The following sections demonstrate how to create compliance templates from common compliance patterns. 
+
+### Example exact match
+
+Create a compliance template from the (1) exact match, (2) enabled feature, (3) global configuration item: `service password-encryption`
+```
+compliance template service-encrypt
+ ned-id cisco-ios-cli-6.108
+  config
+   service password-encryption
+```
+
+### Example variable match
+
+Create a compliance template from the (1) variable substitution, (2) enabled feature, (3) global configuration item: `clock timezone EST -5` 
+```
+compliance template timezone
+ ned-id cisco-ios-cli-6.108
+  config
+   clock timezone {$TIMEZONE}
+   clock timezone {$OFFSET_HOURS}
+   clock timezone {$OFFSET_MINUTES}
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/usps-auto/compliance-reporting-examples.git
-git branch -M main
-git push -uf origin main
+
+### Example absent match
+
+Create a compliance template from the (1) regular expression match, (2) absent feature, (3) global configuration item: `service ipv4 tcp-small-servers` and `service ipv4 udp-small-servers`
+```
+compliance template service-small-servers
+ ned-id cisco-ios-cli-6.108
+  config
+   ! Tags: absent
+   service udp-small-servers
+   ! Tags: absent
+   service tcp-small-servers
 ```
 
-## Integrate with your tools
+### Example regex match
 
-- [ ] [Set up project integrations](https://gitlab.com/usps-auto/compliance-reporting-examples/-/settings/integrations)
+Create a compliance template from the (1) regular expression and variable match, (2) enabled feature, (3) nested configuration item: `.*deny ip any any option any-options`
+```
+compliance template acl_deny_options
+ ned-id cisco-ios-cli-6.108
+  config
+   ip access-list extended {$IPV4_PROTECT}
+    ".*deny ip any any option any-options"
+```
 
-## Collaborate with your team
+### Example configuration section
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+Create a compliance template from the (1) variable match, (2) enabled feature, (3) configuration block: `line console 0; exec-timeout 0; login authentication SECURE_AUTH`
+```
+compliance template line_console_strict
+ ned-id cisco-ios-cli-6.108
+  config
+   ! Tags: strict
+   line console 0
+    exec-timeout 0
+    login authentication {$AUTH_NAME}
+```
 
-## Test and Deploy
+### Example nested match
 
-Use the built-in continuous integration in GitLab.
+Create a compliance template from the (1) regex match, (2) enabled feature, (3) nested match: `interface GigabitEthernet 0/0; no ip unreachables`
+```
+compliance template unreachable
+ ned-id cisco-ios-cli-6.108
+  config
+   ! Tags: allow-empty
+   interface GigabitEthernet .*
+    ip unreachables false
+   !
+   ! Tags: allow-empty
+   interface TenGigabitEthernet .*
+    ip unreachables false
+```
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+## Overview of Compliance Service Package
 
-***
+The compliance service provides a framework for defining policy and policy scope which then translates policy intent into built-in compliance reports. The service includes constructs for template variable re-use, simplification in definitions through groups, and future integration with device and/or service templates for remediation.
 
-# Editing this README
+### Prerequisites
+1. NSO 6.4.3 or higher version is required
+2. Python 3.9 or higher version is required
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+### Basic Usage
 
-## Suggestions for a good README
+A compliance service instance is first defined by a policy name (ex. ios-xe-baseline-policy) and then by defining the devices, templates, and template variables associated with the policy. The policy scope maybe a single device or multiple device (ex. device-group). Multiple compliance templates may exist under each rule name. 
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Sample compliance service:
+```
+compliance-service ios-xe-baseline-policy
+ policy-scope single-device
+ single-device
+  device XE0
+  rules service-checks
+   compliance-templates service-encrypt
+   compliance-templates service-small-servers
+```
 
-## Name
-Choose a self-explaining name for your project.
+Furthermore, the compliance service is augmented with a resource data model (rdm) for pre-defined variable definitions as well as a group feature for compliance templates and rules. 
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+Sample resource data model for pre-defined variables:
+```
+rdm-compliance pre-defined-variables
+ template-variables DEFAULT_OFFSET_HOURS
+  var-key   OFFSET_HOURS
+  var-value -5
+ !
+ template-variables DEFAULT_OFFSET_MINMUTES
+  var-key   OFFSET_MINUTES
+  var-value 0
+ !
+ template-variables DEFAULT_TIMEZONE
+  var-key   TIMEZONE
+  var-value EST
+```
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+Sample resource data model for groups
+```
+rdm-compliance groups
+ compliance-template-groups ios-xe-services
+  compliance-templates service-encrypt
+  compliance-templates service-small-servers
+```
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+Sample compliance service referencing pre-defined variables
+```
+no compliance-service ios-xe-baseline-policy
+compliance-service ios-xe-baseline-policy
+ policy-scope single-device
+ single-device
+  device XE0
+  rules service-checks
+   apply-compliance-tmpl-grp [ ios-xe-services ]
+  ! 
+  rules mgmt-checks
+   compliance-templates timezone
+    pre-defined-variables [ DEFAULT_OFFSET_HOURS DEFAULT_OFFSET_MINMUTES DEFAULT_TIMEZONE ]
+```
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+The resulting compliance report may now be validated as created in NSO:
+```
+admin@ncs# show running-config compliance reports 
+compliance reports report ios-xe-baseline-policy_XE0
+ device-check device [ XE0 ]
+ device-check template service-encrypt
+ !
+ device-check template service-small-servers
+ !
+ device-check template timezone
+  variable OFFSET_HOURS
+   value -5
+  !
+  variable OFFSET_MINUTES
+   value 0
+  !
+  variable TIMEZONE
+   value EST
+```
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.

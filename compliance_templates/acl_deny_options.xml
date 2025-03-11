@@ -1,0 +1,27 @@
+<compliance xmlns="http://tail-f.com/ns/ncs">
+    <template>
+        <name>acl_deny_options</name>
+
+        <ned-id>
+            <id xmlns:cisco-ios-cli-6.108="http://tail-f.com/ns/ned-id/cisco-ios-cli-6.108">
+                cisco-ios-cli-6.108:cisco-ios-cli-6.108</id>
+            <config>
+
+                <ip xmlns="urn:ios">
+                <access-list>
+                    <extended>
+                    <ext-named-acl>
+                        <name>{$IPV4_PROTECT}</name>
+                        <ext-access-list-rule>
+                        <rule>.*deny ip any any option any-options</rule>
+                        </ext-access-list-rule>
+                    </ext-named-acl>
+                    </extended>
+                </access-list>
+                </ip>
+
+            </config>
+        </ned-id>
+
+    </template>
+</compliance>

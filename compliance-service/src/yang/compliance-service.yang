@@ -1,0 +1,300 @@
+module compliance-service {
+
+  namespace "http://example.com/compliance-service";
+  prefix compliance-service;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import tailf-common {
+    prefix tailf;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+
+  description
+    "NSO Example Compliance Service Package";
+
+  revision 2025-02-15 {
+    description
+      "First example release";
+  }
+  grouping rules-grp {
+    list rules {
+      tailf:info "Rules for compliance and remediation";
+      key rule-name;
+      leaf rule-name {
+        tailf:info "Name of Rule. Used for template names";
+        type string;
+      }
+      leaf rule-description {
+        tailf:info "Rule description";
+        type string;
+      }
+      list rule-meta-data {
+        tailf:info "Rule meta-data";
+        key field-name;
+        leaf field-name {
+          type string;
+        }
+        leaf field-value {
+          type string;
+          mandatory true;
+        }
+      }
+      list remediation-templates {
+        tailf:info "Device templates to use for remediation";
+        key template-name;
+        leaf template-name {
+          tailf:info "Device template name";
+          type leafref {
+            path "/ncs:devices/ncs:template/ncs:name";
+          }
+        }
+        uses template-vars;
+        leaf-list pre-defined-variables {
+          tailf:info "List of pre-defined template variables";
+          type leafref {
+            path "/rdm-compliance/pre-defined-variables/template-variables/var-name";
+          }
+        }
+      }
+      list compliance-templates {
+        tailf:info "Compliance templates to use for compliance reports";
+        key template-name;
+        leaf template-name {
+          tailf:info "Compliance template name";
+          type leafref {
+            path "/ncs:compliance/ncs:template/ncs:name";
+          }
+        }
+        uses template-vars;
+        leaf-list pre-defined-variables {
+          tailf:info "List of pre-defined template variables";
+          type leafref {
+            path "/rdm-compliance/pre-defined-variables/template-variables/var-name";
+          }
+        }
+      }
+      leaf-list apply-remediation-tmpl-grp {
+        tailf:info "Apply remediation template group to rule";
+        type leafref {
+          path "/rdm-compliance/groups/device-template-groups/group-name";
+        }
+      }
+      leaf-list apply-compliance-tmpl-grp {
+        tailf:info "Apply compliance template group to rule";
+        type leafref {
+          path "/rdm-compliance/groups/compliance-template-groups/group-name";
+        }
+      }
+    }
+  }
+  grouping var-keys {
+    leaf var-key {
+      tailf:info "Name of variable key defined in the template";
+      type string;
+      mandatory true;
+    }
+    leaf var-value {
+      tailf:info "Variable value for variable key";
+      type string;
+      mandatory true;
+    }
+  }
+  grouping template-vars {
+    list template-variables {
+      tailf:info "Define template variables for use in compliance-service";
+      key var-name;
+      leaf var-name {
+        tailf:info "Name of template variable definition";
+        type string;
+      }
+      uses var-keys;
+    }
+  }
+  container rdm-compliance {
+    container pre-defined-variables {
+      tailf:cli-add-mode;
+      tailf:info "Pre-define template variables for use in compliance-service";
+      uses template-vars;
+    }
+    container groups {
+      tailf:info "Group definitions for compliance-service";
+      tailf:cli-add-mode;
+      list compliance-template-groups {
+        tailf:info "Compliance template groups";
+        key group-name;
+        leaf group-name {
+          tailf:info "Compliance template group name";
+          type string;
+        }
+        list compliance-templates {
+          tailf:info "Define compliance templates and variables associated to group";
+          key template-name;
+          leaf template-name {
+            tailf:info "Compliance templates that are part of group";
+            type leafref {
+              path "/ncs:compliance/ncs:template/ncs:name";
+            }
+          }
+          leaf-list pre-defined-variables {
+            tailf:info "List of pre-defined template variables";
+            type leafref {
+              path "/rdm-compliance/pre-defined-variables/template-variables/var-name";
+            }
+          }
+          uses template-vars;
+        }
+      }
+      list device-template-groups {
+        tailf:info "Device template groups";
+        key group-name;
+        leaf group-name {
+          tailf:info "Device template group name";
+          type string;
+        }
+        list device-templates {
+          tailf:info "Device templates that are part of group";
+          key template-name;
+          leaf template-name {
+            type leafref {
+              path "/ncs:devices/ncs:template/ncs:name";
+            }
+          }
+          leaf-list pre-defined-variables {
+            tailf:info "List of pre-defined template variables";
+            type leafref {
+              path "/rdm-compliance/pre-defined-variables/template-variables/var-name";
+            }
+          }
+          uses template-vars;
+        }
+      }
+      list rules-groups {
+        tailf:info "Rules groups for re-use of rules in compliance-service";
+        key group-name;
+        leaf group-name {
+          type string;
+        }
+        uses rules-grp;
+      }
+    }
+  }
+  container compliance-remediation {
+    list policies {
+      key policy-name;
+      leaf policy-name {
+        type string;
+      }
+      
+    }
+  }
+  list compliance-service {
+    description "Example Compliance Service";
+
+    key policy-name;
+    leaf policy-name {
+      tailf:info "Compliance Policy Name";
+      type string;
+    }
+
+    uses ncs:service-data;
+    ncs:servicepoint compliance-service-servicepoint;
+
+    leaf policy-scope {
+      type enumeration {
+        enum "single-device";
+        enum "multiple-devices";
+      }
+    }
+    container single-device {
+      tailf:cli-add-mode;
+      when "../policy-scope = 'single-device'";
+      presence "single-device";
+      leaf device {
+        tailf:info "Device to apply rules to for compliance and remediation";
+        type leafref {
+          path "/ncs:devices/ncs:device/ncs:name";
+        }
+      }
+      uses rules-grp;
+      leaf-list apply-rules-group {
+        tailf:info "Apply rules group to policy";
+        type leafref {
+          path "/rdm-compliance/groups/rules-groups/group-name";
+        }
+      }
+    }
+    container multiple-devices {
+      tailf:cli-add-mode;
+      when "../policy-scope = 'multiple-devices'";
+      presence "multiple-devices";
+      leaf-list devices {
+        tailf:info "List of devices to apply rules to for compliance and remediation";
+        type leafref {
+          path "/ncs:devices/ncs:device/ncs:name";
+        }
+      }
+      leaf-list device-groups {
+        tailf:info "Device-group to apply rules to for compliance and remediation";
+        type leafref {
+          path "/ncs:devices/ncs:device-group/ncs:name";
+        }
+      }
+      uses rules-grp;
+      leaf-list apply-rules-group {
+        tailf:info "Apply rules group to policy";
+        type leafref {
+          path "/rdm-compliance/groups/rules-groups/group-name";
+        }
+      }
+      //Future rule modification 
+      /* container rule-modifications {
+        list devices {
+          key device;
+          leaf device {
+            ../../
+          }
+        }
+        list rules-group {
+          key group-name;
+          leaf group-name {
+            type leafref {
+              path "../apply-rules-group";
+            }
+          }
+          list rules {
+            key rule-name;
+            leaf rule-name {
+              type leafref {
+                // deref current()/../group-name ../rules/rule-name
+              }
+            }
+            list remediation-templates {
+              key template-name;
+              leaf template-name {
+                //deref current()/../rule-name ../remediation-templates/template-name
+              }
+              leaf not-applicable {
+                type empty;
+              }
+              uses template-vars;
+            }
+            list compliance-templates {
+              key template-name;
+              leaf template-name {
+                //deref current()/../rule-name ../compliance-templates/template-name
+              }
+              uses template-vars;
+            }
+          }
+        }
+        list rules{
+          key
+        }
+      } */
+    }
+  }
+}
