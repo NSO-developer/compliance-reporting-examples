@@ -4,22 +4,24 @@
         <ned-id>
             <id xmlns:cisco-ios-cli-6.108="http://tail-f.com/ns/ned-id/cisco-ios-cli-6.108">
                 cisco-ios-cli-6.108:cisco-ios-cli-6.108</id>
-        <config>
-            <interface xmlns="urn:ios">
-            <GigabitEthernet tags=" allow-empty ">
-                <name>.*</name>
-                <ip>
-                <unreachables>false</unreachables>
-                </ip>
-            </GigabitEthernet>
-            <TenGigabitEthernet tags=" allow-empty ">
-                <name>.*</name>
-                <ip>
-                <unreachables>false</unreachables>
-                </ip>
-            </TenGigabitEthernet>
-            </interface>
-        </config>
+            <config>
+
+                <interface xmlns="urn:ios">
+                    <GigabitEthernet tags=" allow-empty ">
+                        <name>.*</name>
+                        <ip>
+                            <unreachables>false</unreachables>
+                        </ip>
+                    </GigabitEthernet>
+                    <TenGigabitEthernet tags=" allow-empty ">
+                        <name>.*</name>
+                        <ip>
+                            <unreachables>false</unreachables>
+                        </ip>
+                    </TenGigabitEthernet>
+                </interface>
+            </config>
+            
         </ned-id>
     </template>
 </compliance>

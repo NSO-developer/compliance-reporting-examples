@@ -8,16 +8,16 @@
             <config>
 
                 <ip xmlns="urn:ios">
-                <access-list>
-                    <extended>
-                    <ext-named-acl>
-                        <name>{$IPV4_PROTECT}</name>
-                        <ext-access-list-rule>
-                        <rule>.*deny ip any any option any-options</rule>
-                        </ext-access-list-rule>
-                    </ext-named-acl>
-                    </extended>
-                </access-list>
+                    <access-list>
+                        <extended>
+                            <ext-named-acl>
+                                <name>{$IPV4_PROTECT}</name>
+                                <ext-access-list-rule>
+                                    <rule>.*deny ip any any option any-options</rule>
+                                </ext-access-list-rule>
+                            </ext-named-acl>
+                        </extended>
+                    </access-list>
                 </ip>
 
             </config>
