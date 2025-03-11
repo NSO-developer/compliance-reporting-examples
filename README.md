@@ -15,20 +15,19 @@ To begin classifying a compliance check, you must first create the intended netw
 
 The match type category determines any required conditions for a given configuration to be matched. This has template implications as variables must be referenced and regular expression conditions must be well understood. 
 
-1. exact match
+1. **exact match** - An exact string match of the configuration line.
 
     ```
     service password-encryption
     ```
 
-2. variable substitution
+2. **variable substitution** - A configuration line with a value that may vary per device or regionally.
 
     ```
     clock timezone EST -5
     ```
 
-3.  regular expression match 
-
+3.  **regular expression match** - A configuration line with a value that matches a pattern or criteria, such as maximum number of login attempts within 2 minutes. 
     
     ```
     login block-for 900 attempts 3 within 120
@@ -38,25 +37,25 @@ The match type category determines any required conditions for a given configura
 
 The match logic category determines how a given configuration is evaluated. This has template implications as features may need to be present, absent, present but disabled, absent but enabled, or evaluated (ie count).
 
-1. enabled feature
+1. **enabled feature** - A configuration line present in the running configuration and enabled.
 
     ```
     service password-encryption
     ```
 
-2. disabled feature
+2. **disabled feature** - A configuration line present in the running configuration but disabled.
 
     ```
     no mpls ip propagate-ttl
     ```
     
-3. absent configuration
+3. **absent configuration** - A configuration line absent from the running configuration.
 
     ```
     service ipv4 tcp-small-servers
     ```
     
-4. comparison operations (ex. 2 or more ntp servers)
+4. **comparison operations** - A configuraiton line present in the running configuration with a comparison condition, such as a requirement for two or more ntp servers.
 
     ```
     ntp server 1.1.1.1
@@ -67,20 +66,20 @@ The match logic category determines how a given configuration is evaluated. This
 
 The match pattern category determines the scope of a given configuration match. This has template implications as configuration elements may be nested, may require matching multiple lines, or may require iterating through a list of values.
 
-1. global configuration
+1. **global configuration** - A configuration line found at the global configuration level.
 
     ```
     service password-encryption
     ```
     
-2. nested configuration
+2. **nested configuration** - A configuration line found nested under a parent configuration line.
 
     ```
     interface GigabitEthernet0/1
       no ip unreachables
     ```
     
-3. configuration list
+3. **configuration list** - A configuration line contained within a list of configuration items.
 
     ```
     ip access-control list XXX
@@ -92,7 +91,7 @@ The match pattern category determines the scope of a given configuration match. 
 
     ```
     
-4. configuration section (multiple lines)
+4. **configuration section** - A configuration that spans multiple lines of configuration. 
 
     ```
     archive
@@ -106,7 +105,11 @@ The following sections demonstrate how to create compliance templates from commo
 
 ### Example exact match
 
-Create a compliance template from the (1) exact match, (2) enabled feature, (3) global configuration item: `service password-encryption`
+Create a compliance template from the (1) exact match, (2) enabled feature, (3) global configuration item: 
+
+`service password-encryption`
+
+Compliance Template:
 ```
 compliance template service-encrypt
  ned-id cisco-ios-cli-6.108
@@ -116,7 +119,11 @@ compliance template service-encrypt
 
 ### Example variable match
 
-Create a compliance template from the (1) variable substitution, (2) enabled feature, (3) global configuration item: `clock timezone EST -5` 
+Create a compliance template from the (1) variable substitution, (2) enabled feature, (3) global configuration item:
+
+`clock timezone EST -5`
+
+Compliance Template:
 ```
 compliance template timezone
  ned-id cisco-ios-cli-6.108
@@ -124,12 +131,15 @@ compliance template timezone
    clock timezone {$TIMEZONE}
    clock timezone {$OFFSET_HOURS}
    clock timezone {$OFFSET_MINUTES}
-
 ```
 
 ### Example absent match
 
-Create a compliance template from the (1) regular expression match, (2) absent feature, (3) global configuration item: `service ipv4 tcp-small-servers` and `service ipv4 udp-small-servers`
+Create a compliance template from the (1) regular expression match, (2) absent feature, (3) global configuration item:
+
+`service ipv4 tcp-small-servers` and `service ipv4 udp-small-servers`
+
+Compliance Template:
 ```
 compliance template service-small-servers
  ned-id cisco-ios-cli-6.108
@@ -142,7 +152,11 @@ compliance template service-small-servers
 
 ### Example regex match
 
-Create a compliance template from the (1) regular expression and variable match, (2) enabled feature, (3) nested configuration item: `.*deny ip any any option any-options`
+Create a compliance template from the (1) regular expression and variable match, (2) enabled feature, (3) nested configuration item:
+
+`.*deny ip any any option any-options`
+
+Compliance Template:
 ```
 compliance template acl_deny_options
  ned-id cisco-ios-cli-6.108
@@ -153,7 +167,11 @@ compliance template acl_deny_options
 
 ### Example configuration section
 
-Create a compliance template from the (1) variable match, (2) enabled feature, (3) configuration block: `line console 0; exec-timeout 0; login authentication SECURE_AUTH`
+Create a compliance template from the (1) variable match, (2) enabled feature, (3) configuration block:
+
+`line console 0; exec-timeout 0; login authentication SECURE_AUTH`
+
+Compliance Template:
 ```
 compliance template line_console_strict
  ned-id cisco-ios-cli-6.108
@@ -166,7 +184,11 @@ compliance template line_console_strict
 
 ### Example nested match
 
-Create a compliance template from the (1) regex match, (2) enabled feature, (3) nested match: `interface GigabitEthernet 0/0; no ip unreachables`
+Create a compliance template from the (1) regex match, (2) enabled feature, (3) nested match:
+
+`interface GigabitEthernet 0/0; no ip unreachables`
+
+Compliance Template:
 ```
 compliance template unreachable
  ned-id cisco-ios-cli-6.108
