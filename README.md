@@ -7,7 +7,7 @@ This repo explores how to leverage Cisco Network Services Orchestrator (NSO) com
 
 ## Overview of Compliance Check Patterns
 
-Several patterns emerge when creating compliance checks. In general, a compliance check can be described by 3 characteristics: the match type, the match pattern, and the match logic. Understanding which categories a compliance check falls into will help guide in selecting the appropriate template pattern to use.
+Several patterns emerge when creating compliance checks. In general, a compliance check can be described by 3 characteristics: the match type, the match scope, and the match logic. Understanding which categories a compliance check falls into will help guide in selecting the appropriate template pattern to use.
 
 To begin classifying a compliance check, you must first create the intended network configuration for the PASS condition and/or the FAIL condition (as appropriate). This configuration is then assessed for each of the categories below. 
 
@@ -62,9 +62,9 @@ The match logic category determines how a given configuration is evaluated. This
     ntp server 2.2.2.2
     ```
 
-### Match Pattern
+### Match Scope
 
-The match pattern category determines the scope of a given configuration match. This has template implications as configuration elements may be nested, may require matching multiple lines, or may require iterating through a list of values.
+The match scope category determines the scope of a given configuration match. This has template implications as configuration elements may be nested, may require matching multiple lines, or may require iterating through a list of values.
 
 1. **global configuration** - A configuration line found at the global configuration level.
 
